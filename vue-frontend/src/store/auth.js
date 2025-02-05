@@ -4,14 +4,20 @@ import { loginWithGoogle, logout } from "../firebase";
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null,
+    isAdmin: false,
   }),
   actions: {
     async googleLogin() {
-      this.user = await loginWithGoogle();
+        const loggedUser = await loginWithGoogle();
+        if(loggedUser){
+            this.user = loggedUser;
+            this.isAdmin = loggedUser.isAdmin;
+        }
     },
     async logout() {
       await logout();
       this.user = null;
+      this.isAdmin = false;
     }
   }
 });
