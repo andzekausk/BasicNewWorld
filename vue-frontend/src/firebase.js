@@ -10,8 +10,6 @@ const firebaseConfig = {
     appId: import.meta.env.VITEFIREBASE_APP_ID
 };
 
-const venta = "@venta.lv";
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
@@ -21,15 +19,15 @@ const loginWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
-    // if(!user.email.endsWith(venta)){
-    //     await signOut(auth);
-    //     alert("Tikai @venta.lv epasti!!!");
-    //     return null;
-    // }
-    const isAdmin = user.email.endsWith(venta);
+    const idToken = await user.getIdToken();
     
     // return user;
-    return {...user, isAdmin};
+    // return {...user, isAdmin};
+    return { 
+      displayName: user.displayName,
+      email: user.email,
+      idToken
+    };
   } catch (error) {
     console.error("Google Sign-In Error:", error);
     throw error;
