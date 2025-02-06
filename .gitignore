@@ -4,3 +4,4 @@ vue-backend/firebase-adminsdk.json
 /vue-backend/node_modules
 /vue-frontend/node_modules
 /vue-frontend/.vite
+/vue-frontend/.vscode
