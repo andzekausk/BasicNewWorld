@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-// const bcrypt = require("bcryptjs");
 const bodyParser = require("body-parser");
 const mysql = require('mysql2/promise');
 const admin = require("firebase-admin");
@@ -27,12 +26,10 @@ async function getAllowedDomains() {
     return rows.map(row => row.domain);
 }
 
-// const users = [
-//     { id: 1, username: "user", password: bcrypt.hashSync("user123", 10), role: "user" },
-//     { id: 2, username: "admin", password: bcrypt.hashSync("admin123", 10), role: "admin" }
-// ];
-
-// const SECRET_KEY = process.env.SECRET_KEY || "supersecretkey";
+async function isAdminUser(email) {
+    const [rows] = await pool.query("SELECT * FROM admins WHERE email = ?", [email]);
+    return rows.length > 0;
+}
 
 app.get("/", (req, res) => {
   res.json({ message: "Hello World from Backend!" });
@@ -47,19 +44,21 @@ app.post("/login", async (req, res) => {
         const domain = email.split("@")[1];
 
         const allowedDomains = await getAllowedDomains();
-        const isAdmin = allowedDomains.includes(domain);
+        // const isAdmin = allowedDomains.includes(domain);
+        if (!allowedDomains.includes(domain)) {
+            return res.status(403).json({ message: "Email domain not allowed" });
+        }
 
-        res.json({ email, isAdmin });
+        const isAdmin = await isAdminUser(email);
+        const token = jwt.sign({ email, isAdmin }, process.env.SECRET_KEY, { expiresIn: "1h" });
+
+        res.json({ token, isAdmin });
+        // res.json({ email, isAdmin });
     } catch (error) {
         console.error("Error verifying token:", error);
         res.status(401).json({ message: "Unauthorized" });
     }
-    // const user = users.find(u => u.username === username);
-    // if (!user || !bcrypt.compareSync(password, user.password)) {
-    //     return res.status(401).json({ message: "Invalid credentials" });
-    // }
-    // const token = jwt.sign({ id: user.id, role: user.role }, SECRET_KEY, { expiresIn: "1h" });
-    // res.json({ token, role: user.role });
+
 });
 
 // Protected Route Example (Admin Only)

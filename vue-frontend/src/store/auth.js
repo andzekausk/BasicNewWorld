@@ -5,18 +5,16 @@ export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null,
     isAdmin: false,
+    token: null,
   }),
   actions: {
     async googleLogin() {
         const loggedUser = await loginWithGoogle();
-        // if(loggedUser){
-        //     this.user = loggedUser;
-        //     this.isAdmin = loggedUser.isAdmin;
-        // }
         if (!loggedUser) return;
-        console.log("ID Token:", loggedUser.idToken);
+
+        // console.log("ID Token:", loggedUser.idToken);
+        
         try {
-          // Send ID token to backend for verification
           const response = await fetch("http://localhost:3000/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -27,9 +25,11 @@ export const useAuthStore = defineStore("auth", {
   
           const data = await response.json();
   
-          // Update state with verified user and admin status
           this.user = { email: data.email };
           this.isAdmin = data.isAdmin;
+          this.token = data.token;
+          localStorage.setItem("token", data.token);
+
         } catch (error) {
           console.error("Login error:", error);
         }
@@ -38,6 +38,8 @@ export const useAuthStore = defineStore("auth", {
       await logout();
       this.user = null;
       this.isAdmin = false;
+      this.token = null;
+      localStorage.removeItem("token");
     }
   }
 });
