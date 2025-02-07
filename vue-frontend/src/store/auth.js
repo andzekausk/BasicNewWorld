@@ -12,8 +12,6 @@ export const useAuthStore = defineStore("auth", {
     async googleLogin() {
         const loggedUser = await loginWithGoogle();
         if (!loggedUser) return;
-
-        // console.log("ID Token:", loggedUser.idToken);
         
         try {
           const response = await fetch("http://localhost:3000/login", {

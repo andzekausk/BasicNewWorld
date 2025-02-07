@@ -38,7 +38,6 @@ app.get("/", (req, res) => {
 
 // Login Route
 app.post("/login", async (req, res) => {
-    // const { idToken } = req.body;
     const { idToken, username, password } = req.body;
     if(idToken){    // Firebase
         try {
@@ -47,7 +46,6 @@ app.post("/login", async (req, res) => {
             const domain = email.split("@")[1];
     
             const allowedDomains = await getAllowedDomains();
-            // const isAdmin = allowedDomains.includes(domain);
             const isAllowed = allowedDomains.includes(domain);
             
             if (!isAllowed) {
@@ -55,24 +53,18 @@ app.post("/login", async (req, res) => {
             }
     
             const isAdmin = await isAdminUser(email);
-            // const token = jwt.sign({ email, isAdmin }, process.env.SECRET_KEY, { expiresIn: "1h" });
     
             res.json({email, isAdmin, isAllowed });
-            // res.json({ token, isAdmin });
-            // res.json({ email, isAdmin });
         } catch (error) {
             console.error("Error verifying token:", error);
             res.status(401).json({ message: "Unauthorized" });
         }
     } else if (username && password){   //MySql
-        console.log('Received Username:', username);
-        console.log('Received Password:', password);
         try{
             const [rows] = await pool.query("SELECT * FROM users WHERE username = ?", [username]);
             if (rows.length === 0) return res.status(401).json({ message: "Invalid credentials" });
 
             const user = rows[0];
-            console.log('Hash Password:', user.password_hash);
             if (!bcrypt.compareSync(password, user.password_hash)) {
                 return res.status(401).json({ message: "Invalid credentials" });
             }

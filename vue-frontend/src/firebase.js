@@ -21,8 +21,6 @@ const loginWithGoogle = async () => {
     const user = result.user;
     const idToken = await user.getIdToken();
     
-    // return user;
-    // return {...user, isAdmin};
     return { 
       displayName: user.displayName,
       email: user.email,

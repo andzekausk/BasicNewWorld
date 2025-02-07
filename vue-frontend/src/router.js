@@ -10,7 +10,6 @@ const routes = [
     { 
         path: "/admin", 
         component: Admin, 
-        // meta: { requiresAdmin: true } 
         beforeEnter: (to, from, next) => {
             const authStore = useAuthStore();
             if (!authStore.isAdmin) {
@@ -26,16 +25,5 @@ const router = createRouter({
     history: createWebHistory(),
     routes
 });
-
-// router.beforeEach((to, from, next) => {
-//     const isAuthenticated = localStorage.getItem("token");
-//     const userRole = localStorage.getItem("role");
-
-//     if (to.meta.requiresAdmin && (!isAuthenticated || userRole !== "admin")) {
-//         next("/login");
-//     } else {
-//         next();
-//     }
-// });
 
 export default router;
