@@ -27,11 +27,29 @@ async function getAllowedDomains() {
     return rows.map(row => row.domain);
 }
 
-async function isAdminUser(email) {
-    const [rows] = await pool.query("SELECT * FROM admins WHERE email = ?", [email]);
-    return rows.length > 0;
+async function getUserRoles(username) {
+    const [rows] = await pool.query(`
+        SELECT roles.name 
+        FROM user_roles
+        JOIN users ON user_roles.user_id = users.id
+        JOIN roles ON user_roles.role_id = roles.id
+        WHERE users.username = ?
+    `, [username]);
+
+    return rows.map(row => row.name); // Returns an array of roles
 }
 
+async function getGoogleUserRoles(email) {
+    const [rows] = await pool.query(`
+        SELECT roles.name 
+        FROM google_user_roles
+        JOIN google_users ON google_user_roles.google_user_id = google_users.id
+        JOIN roles ON google_user_roles.role_id = roles.id
+        WHERE google_users.email = ?
+    `, [email]);
+
+    return rows.map(row => row.name); // Returns an array of roles
+}
 app.get("/", (req, res) => {
   res.json({ message: "Hello World from Backend!" });
 });
@@ -47,14 +65,17 @@ app.post("/login", async (req, res) => {
     
             const allowedDomains = await getAllowedDomains();
             const isAllowed = allowedDomains.includes(domain);
+            if(isAllowed){
+                console.log("wassup");
+            }
             
             if (!isAllowed) {
                 return res.status(403).json({ message: "Email domain not allowed" });
             }
-    
-            const isAdmin = await isAdminUser(email);
-    
-            res.json({email, isAdmin, isAllowed });
+            
+            const roles = await getGoogleUserRoles(email);
+
+            res.json({email, roles, isAllowed });
         } catch (error) {
             console.error("Error verifying token:", error);
             res.status(401).json({ message: "Unauthorized" });
@@ -69,8 +90,8 @@ app.post("/login", async (req, res) => {
                 return res.status(401).json({ message: "Invalid credentials" });
             }
 
-            return res.json({ email: user.email, isAdmin: false, isAllowed: true });
-
+            const roles = await getUserRoles(user.username);
+            return res.json({ email: user.email, roles, isAllowed: true });
         } catch (error) {
             console.error("Login error:", error);
             res.status(500).json({ message: "Server error" });

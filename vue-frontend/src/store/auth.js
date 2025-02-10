@@ -4,9 +4,9 @@ import { loginWithGoogle, logout } from "../firebase";
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null,
-    isAdmin: false,
     isAllowed: false,
-    // token: null,
+    roles: [],
+    currentRole: "",
   }),
   actions: {
     async googleLogin() {
@@ -30,10 +30,9 @@ export const useAuthStore = defineStore("auth", {
           if (!response.ok) throw new Error("Failed to verify login");
 
           this.user = { email: data.email };
-          this.isAdmin = data.isAdmin;
+          this.roles = data.roles;
           this.isAllowed = data.isAllowed;
-          // this.token = data.token;
-          // localStorage.setItem("token", data.token);
+          this.currentRole = data.roles.includes("admin") ? "admin" : "user";
 
         } catch (error) {
           console.error("Login error:", error);
@@ -52,7 +51,9 @@ export const useAuthStore = defineStore("auth", {
 
         const data = await response.json();
         this.user = { email: data.email };
-        this.isAdmin = data.isAdmin;
+        this.roles = data.roles;
+        this.currentRole = data.roles.includes("admin") ? "admin" : "user";
+
       } catch (error) {
         console.error("Login error:", error);
       }
@@ -61,9 +62,14 @@ export const useAuthStore = defineStore("auth", {
     async logout() {
       await logout();
       this.user = null;
-      this.isAdmin = false;
-      // this.token = null;
-      // localStorage.removeItem("token");
-    }
+      this.roles = [];
+      this.currentRole = "";
+    },
+    
+    async switchRole(newRole) {
+      if (this.roles.includes(newRole)) {
+        this.currentRole = newRole;
+      }
+    },
   }
 });

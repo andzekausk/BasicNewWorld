@@ -3,8 +3,11 @@
     <nav>
       <router-link to="/">Home</router-link> |
       <router-link v-if="!authStore.user" to="/login">Login</router-link> |
-      <router-link v-if="authStore.isAdmin" to="/admin">Admin</router-link> |
+      <router-link v-if="authStore.currentRole=='admin'" to="/admin">Admin</router-link> |
       <button v-if="authStore.user" @click="authStore.logout">Logout</button>
+      <select v-if="authStore.roles.length > 1" v-model="authStore.currentRole">
+      <option v-for="role in authStore.roles" :key="role" :value="role">{{ role }}</option>
+      </select>
     </nav>
 
     <router-view />
