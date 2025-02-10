@@ -12,7 +12,7 @@ const routes = [
         component: Admin, 
         beforeEnter: (to, from, next) => {
             const authStore = useAuthStore();
-            if (!authStore.isAdmin) {
+            if (!authStore.currentRole=="admin") {
                 next("/"); // Redirect non-admins
             } else {
                 next();
